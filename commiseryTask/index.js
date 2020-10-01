@@ -4,6 +4,12 @@ const octokit = new Octokit();
 var tl = require('azure-pipelines-task-lib/task')
 
 async function run() {
+    const github_token = tl.getInput('gitHubConnection', true)
+    
+    const octokit = new Octokit({
+        auth: github_token
+    })
+
     const { data: pullRequest } = await octokit.pulls.get({
         owner: "KevinDeJong-TomTom",
         repo: "commisery-task",
@@ -16,9 +22,11 @@ async function run() {
         pull_number: 1,
     });
 
-    await tl.tool('commisery-verify-msg').line(commits[0]['sha']).exec()
+    await commits.forEach(check_commit);
+}
 
-    console.log(commits)
+async function check_commit(item, index) {
+    await tl.tool('commisery-verify-msg').line(item['sha']).exec()
 }
 
 run()
